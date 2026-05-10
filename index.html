@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>prpack — pack a PR for LLM review</title>
+<meta name="description" content="Paste a public GitHub pull request URL and get back a single markdown file (commits + diff + full post-change file contents) optimized to drop into Claude, Cursor, or any LLM for code review." />
+<meta property="og:title" content="prpack — pack a PR for LLM review" />
+<meta property="og:description" content="Paste a public GitHub PR URL. Get one markdown file optimized for LLM code review." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E📦%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --fg: #e6edf3;
+    --dim: #8b949e;
+    --accent: #d2a8ff;
+    --green: #7ee787;
+    --red: #ff7b72;
+    --prompt: #79c0ff;
+    --button: #1f6feb;
+    --button-hover: #388bfd;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  header {
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+    line-height: 1.1;
+    font-family: "SF Pro Display", -apple-system, system-ui, sans-serif;
+  }
+  .tag {
+    font-size: 18px;
+    color: var(--dim);
+    max-width: 640px;
+  }
+  .tag b { color: var(--fg); font-weight: 600; }
+  .tag a { color: var(--prompt); }
+
+  .form {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 32px;
+  }
+  .form label {
+    display: block;
+    font-size: 13px;
+    color: var(--dim);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .input-row {
+    display: flex;
+    gap: 12px;
+  }
+  input[type=text] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--fg);
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  input[type=text]:focus {
+    outline: none;
+    border-color: var(--prompt);
+  }
+  button.primary {
+    background: var(--button);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button.primary:hover { background: var(--button-hover); }
+  button.primary:disabled { background: #21262d; color: var(--dim); cursor: not-allowed; }
+  button.ghost {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button.ghost:hover { background: var(--panel); border-color: var(--dim); }
+
+  .options {
+    margin-top: 16px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--dim);
+  }
+  .options label { display: flex; align-items: center; gap: 6px; color: var(--dim); margin: 0; }
+  .options input[type=checkbox] { accent-color: var(--accent); }
+
+  .examples {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--dim);
+  }
+  .examples a {
+    color: var(--prompt);
+    text-decoration: none;
+    cursor: pointer;
+    margin-right: 12px;
+  }
+  .examples a:hover { text-decoration: underline; }
+
+  .status {
+    margin-top: 24px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-size: 14px;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.error { border-color: var(--red); color: var(--red); }
+
+  .output {
+    margin-top: 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: none;
+  }
+  .output.show { display: block; }
+  .output-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .stats {
+    font-size: 13px;
+    color: var(--dim);
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .stats b { color: var(--fg); }
+  .actions { display: flex; gap: 8px; }
+  pre.output-pre {
+    margin: 0;
+    padding: 16px;
+    overflow: auto;
+    max-height: 600px;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer a { color: var(--prompt); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .cta-strip {
+    margin-top: 24px;
+    background: rgba(210, 168, 255, 0.06);
+    border: 1px solid rgba(210, 168, 255, 0.32);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: var(--dim);
+  }
+  .cta-strip b { color: var(--fg); }
+  .cta-strip a { color: var(--accent); }
+  @media (max-width: 600px) {
+    h1 { font-size: 36px; }
+    .input-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="eyebrow">PR &nbsp;⇢&nbsp; CONTEXT &nbsp;⇢&nbsp; LLM</div>
+      <h1>prpack</h1>
+      <p class="tag">
+        Paste a public GitHub pull request URL. Get one markdown file containing the diff <b>plus</b> the full post-change content of every touched file — sized and formatted to drop into Claude, Cursor, or any LLM as code-review context.
+      </p>
+    </header>
+
+    <div class="form">
+      <label for="url">Public GitHub pull request URL</label>
+      <div class="input-row">
+        <input id="url" type="text" placeholder="https://github.com/owner/repo/pull/123" autofocus />
+        <button class="primary" id="pack">Pack</button>
+      </div>
+      <div class="options">
+        <label><input type="checkbox" id="opt-include-tests" /> include adjacent tests</label>
+        <label><input type="checkbox" id="opt-no-content" /> diff only (skip full file content)</label>
+      </div>
+      <div class="examples">
+        try:
+        <a data-url="https://github.com/vercel/next.js/pull/76000">vercel/next.js#76000</a>
+        <a data-url="https://github.com/nodejs/node/pull/55000">nodejs/node#55000</a>
+        <a data-url="https://github.com/Lucas2944/prpack/pull/1">Lucas2944/prpack#1</a>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="output" id="output">
+      <div class="output-bar">
+        <div class="stats" id="stats"></div>
+        <div class="actions">
+          <button class="ghost" id="copy">Copy</button>
+          <button class="ghost" id="download">Download .md</button>
+        </div>
+      </div>
+      <pre class="output-pre" id="output-pre"></pre>
+    </div>
+
+    <div class="cta-strip">
+      <b>Want this on every PR automatically?</b> Drop a 5-line workflow into your repo with
+      <a href="https://github.com/Lucas2944/prpack-action" target="_blank" rel="noopener">prpack-action</a>.
+      For four review-style preset configs (security / performance / tests / architecture) +
+      a workflow guide, see the <a href="https://scottthurman89.itch.io/prpack" target="_blank" rel="noopener">Pro Pack</a>
+      (free or pay-what-you-want).
+    </div>
+
+    <footer>
+      <span>
+        <a href="https://github.com/Lucas2944/prpack" target="_blank" rel="noopener">CLI on GitHub</a>
+        · <a href="https://github.com/Lucas2944/prpack-action" target="_blank" rel="noopener">GitHub Action</a>
+        · <a href="https://scottthurman.hashnode.dev/your-llm-code-reviewer-is-reading-half-the-file" target="_blank" rel="noopener">The technique</a>
+      </span>
+      <span>MIT · runs entirely in your browser · uses the public GitHub API</span>
+    </footer>
+  </div>
+
+  <script type="module" src="./pack.js"></script>
+</body>
+</html>
