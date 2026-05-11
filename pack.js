@@ -9,6 +9,9 @@ const URL_INPUT = document.getElementById('url');
 const PACK_BTN = document.getElementById('pack');
 const COPY_BTN = document.getElementById('copy');
 const DOWNLOAD_BTN = document.getElementById('download');
+const NEXT_STEP = document.getElementById('next-step');
+const COPY_PROMPT_BTN = document.getElementById('copy-prompt');
+const PROMPT_PRE = document.getElementById('prompt-pre');
 
 const TEST_PATTERNS = [
   /(^|\/)test\//,
@@ -293,6 +296,7 @@ async function run() {
     const tokens = Math.round(bytes / 4);
     STATS.innerHTML = `<b>${files.length}</b> files · <b>${commits.length}</b> commits · <b>${formatBytes(bytes)}</b> · ~<b>${tokens.toLocaleString()}</b> tokens`;
     OUTPUT.classList.add('show');
+    NEXT_STEP.classList.add('show');
     setStatus('');
   } catch (err) {
     setStatus(err.message || String(err), true);
@@ -311,6 +315,13 @@ COPY_BTN.addEventListener('click', async () => {
   await navigator.clipboard.writeText(lastOutput);
   COPY_BTN.textContent = 'Copied!';
   setTimeout(() => (COPY_BTN.textContent = 'Copy'), 1500);
+});
+
+COPY_PROMPT_BTN.addEventListener('click', async () => {
+  if (!PROMPT_PRE) return;
+  await navigator.clipboard.writeText(PROMPT_PRE.textContent);
+  COPY_PROMPT_BTN.textContent = 'Copied!';
+  setTimeout(() => (COPY_PROMPT_BTN.textContent = 'Copy prompt'), 1500);
 });
 
 DOWNLOAD_BTN.addEventListener('click', () => {

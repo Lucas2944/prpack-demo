@@ -225,6 +225,58 @@
   }
   .cta-strip b { color: var(--fg); }
   .cta-strip a { color: var(--accent); }
+
+  .next-step {
+    display: none;
+    margin-top: 16px;
+    background: rgba(126, 231, 135, 0.04);
+    border: 1px solid rgba(126, 231, 135, 0.28);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .next-step.show { display: block; }
+  .next-step-title {
+    font-weight: 700;
+    color: var(--green);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .next-step p {
+    color: var(--dim);
+    font-size: 14px;
+    margin: 0 0 12px;
+  }
+  pre.prompt-pre {
+    margin: 0 0 12px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--fg);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+  .next-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ghost-link {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .ghost-link:hover { background: var(--panel); border-color: var(--dim); }
   @media (max-width: 600px) {
     h1 { font-size: 36px; }
     .input-row { flex-direction: column; }
@@ -270,6 +322,29 @@
         </div>
       </div>
       <pre class="output-pre" id="output-pre"></pre>
+    </div>
+
+    <div class="next-step" id="next-step">
+      <div class="next-step-title">Next: paste into your model</div>
+      <p>
+        Paste the markdown above into Claude / Cursor / your model of choice, then append the prompt below.
+        The prompt asks the model to use the full file contents as context — this is where prpack pays off.
+      </p>
+      <pre class="prompt-pre" id="prompt-pre">Review this PR. The diff and full post-change file contents are above. Focus on:
+
+- Bugs introduced by lines that didn't change but are now reached differently
+- Nullability and undefined handling
+- Edge cases in error paths
+- Assumptions the new code makes about its inputs or callers
+
+Cite file and line. If you're unsure, say so. End with a verdict line:
+
+Safe to merge | needs changes | reject</pre>
+      <div class="next-actions">
+        <button class="ghost" id="copy-prompt">Copy prompt</button>
+        <a class="ghost-link" href="https://claude.ai/new" target="_blank" rel="noopener">Open claude.ai</a>
+        <a class="ghost-link" href="https://github.com/Lucas2944/prpack" target="_blank" rel="noopener">Install the CLI</a>
+      </div>
     </div>
 
     <div class="cta-strip">
