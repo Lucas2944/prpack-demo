@@ -34,7 +34,7 @@ Because the easiest way to evaluate a CLI is to not have to install it. Paste a 
 
 ## Related
 
-- [prpack](https://github.com/Lucas2944/prpack) — the CLI itself (MIT).
+- [prpack](https://github.com/Lucas2944/prpack) — the CLI itself (MIT). v0.2.0 adds native `--review` mode (Anthropic streaming).
 - [prpack-action](https://github.com/Lucas2944/prpack-action) — GitHub Action that runs prpack on every PR.
 - [prpack/examples/](https://github.com/Lucas2944/prpack/tree/main/examples/invoice-refactor) — reproducible side-by-side: paste the raw diff vs. the packed context into your model, see the bug get caught.
 - [prpack-prompts](https://github.com/Lucas2944/prpack-prompts) — four review prompts as plain markdown, works with any LLM.
