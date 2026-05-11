@@ -36,8 +36,11 @@ Because the easiest way to evaluate a CLI is to not have to install it. Paste a 
 
 - [prpack](https://github.com/Lucas2944/prpack) — the CLI itself (MIT).
 - [prpack-action](https://github.com/Lucas2944/prpack-action) — GitHub Action that runs prpack on every PR.
-- [Pro Pack](https://scottthurman89.itch.io/prpack) — four curated review-style presets + a workflow guide, free or pay-what-you-want.
-- [Article: Your LLM code reviewer is reading half the file](https://scottthurman.hashnode.dev/your-llm-code-reviewer-is-reading-half-the-file)
+- [prpack/examples/](https://github.com/Lucas2944/prpack/tree/main/examples/invoice-refactor) — reproducible side-by-side: paste the raw diff vs. the packed context into your model, see the bug get caught.
+- [prpack-prompts](https://github.com/Lucas2944/prpack-prompts) — four review prompts as plain markdown, works with any LLM.
+- [Pro Pack](https://scottthurman89.itch.io/prpack) — four curated `.prpack.yml` review presets + a workflow guide, free or pay-what-you-want.
+- [Article 1: Your LLM code reviewer is reading half the file](https://scottthurman.hashnode.dev/your-llm-code-reviewer-is-reading-half-the-file)
+- [Article 4: Add an LLM PR reviewer to your GitHub Actions in 5 minutes (no API key)](https://scottthurman.hashnode.dev/)
 
 ## License
 
